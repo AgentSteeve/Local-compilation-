@@ -13,17 +13,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-data class Module(val name: String, val category: String, var enabled: Boolean = false)
+data class Module(val name: String, val category: String)
 
 @Composable
 fun ModuleList() {
     val modules = remember {
-        mutableStateListOf(
+        listOf(
             Module("KillAura", "Combat"),
             Module("Reach", "Combat"),
             Module("AutoClicker", "Combat"),
@@ -45,17 +44,24 @@ fun ModuleList() {
         )
     }
 
+    val enabledStates = remember {
+        mutableStateMapOf<String, Boolean>().apply {
+            modules.forEach { put(it.name, false) }
+        }
+    }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         items(modules) { module ->
+            val isOn = enabledStates[module.name] == true
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Surface, RoundedCornerShape(8.dp))
                     .border(1.dp, Border, RoundedCornerShape(8.dp))
-                    .clickable { module.enabled = !module.enabled }
+                    .clickable { enabledStates[module.name] = !isOn }
                     .padding(horizontal = 14.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -63,7 +69,7 @@ fun ModuleList() {
                 Column {
                     Text(
                         text = module.name,
-                        color = if (module.enabled) Cyan else TextMain,
+                        color = if (isOn) Cyan else TextMain,
                         fontFamily = FontFamily.Monospace,
                         fontSize = 14.sp
                     )
@@ -74,8 +80,8 @@ fun ModuleList() {
                     )
                 }
                 Switch(
-                    checked = module.enabled,
-                    onCheckedChange = { module.enabled = it },
+                    checked = isOn,
+                    onCheckedChange = { enabledStates[module.name] = it },
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = InkBlack,
                         checkedTrackColor = Cyan,
